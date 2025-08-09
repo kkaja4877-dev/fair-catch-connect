@@ -10,36 +10,36 @@ const Marketplace = () => {
       fisherman: "Captain Rodriguez",
       fishType: "Fresh Tuna",
       weight: "25 kg",
-      price: "$8.50/kg",
-      location: "Pacific Coast",
+      price: "₹650/kg",
+      location: "Mumbai Coast",
       timePosted: "2 hours ago",
       image: "🐟",
       status: "available",
-      currentBid: "$8.75/kg"
+      currentBid: "₹675/kg"
     },
     {
       id: 2,
       fisherman: "Miguel Santos",
       fishType: "Red Snapper",
       weight: "18 kg",
-      price: "$12.00/kg",
-      location: "Gulf Waters",
+      price: "₹950/kg",
+      location: "Kerala Waters",
       timePosted: "4 hours ago",
       image: "🐠",
       status: "bidding",
-      currentBid: "$12.50/kg"
+      currentBid: "₹980/kg"
     },
     {
       id: 3,
       fisherman: "Elena Martinez",
-      fishType: "Fresh Salmon",
+      fishType: "Pomfret",
       weight: "32 kg",
-      price: "$15.00/kg",
-      location: "Northern Bay",
+      price: "₹1200/kg",
+      location: "Goa Coast",
       timePosted: "1 hour ago",
       image: "🍣",
       status: "available",
-      currentBid: "$15.25/kg"
+      currentBid: "₹1225/kg"
     }
   ]
 
@@ -104,8 +104,8 @@ const Marketplace = () => {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-muted-foreground">Starting Price</span>
                       <span className="font-semibold flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        {listing.price}
+                        <span className="text-lg">₹</span>
+                        {listing.price.replace('₹', '')}
                       </span>
                     </div>
                     

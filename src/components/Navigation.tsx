@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/enhanced-button"
-import { Fish, Menu, X } from "lucide-react"
+import { Fish, Menu, X, User, LogOut } from "lucide-react"
 import { useState } from "react"
+import { useAuth } from "@/hooks/useAuth"
+import { Link } from "react-router-dom"
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const { user, profile, signOut } = useAuth();
 
   return (
     <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-border z-50">
@@ -31,8 +34,29 @@ const Navigation = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost">Sign In</Button>
-            <Button variant="ocean">Get Started</Button>
+            {user ? (
+              <>
+                <div className="flex items-center space-x-2 text-sm">
+                  <User className="h-4 w-4" />
+                  <span className="text-muted-foreground">
+                    {profile?.full_name} ({profile?.role})
+                  </span>
+                </div>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="ocean">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -61,8 +85,25 @@ const Navigation = () => {
                 Contact
               </a>
               <div className="flex flex-col gap-2 mt-4">
-                <Button variant="ghost">Sign In</Button>
-                <Button variant="ocean">Get Started</Button>
+                {user ? (
+                  <>
+                    <div className="text-sm text-muted-foreground">
+                      {profile?.full_name} ({profile?.role})
+                    </div>
+                    <Button variant="outline" onClick={signOut}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth">
+                      <Button variant="ghost">Sign In</Button>
+                    </Link>
+                    <Link to="/auth">
+                      <Button variant="ocean">Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

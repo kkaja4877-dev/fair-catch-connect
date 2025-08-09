@@ -14,7 +14,367 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bids: {
+        Row: {
+          bid_amount: number
+          bidder_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          message: string | null
+          quantity_kg: number
+          status: string
+          total_bid: number | null
+          updated_at: string
+        }
+        Insert: {
+          bid_amount: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          message?: string | null
+          quantity_kg: number
+          status?: string
+          total_bid?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bid_amount?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          message?: string | null
+          quantity_kg?: number
+          status?: string
+          total_bid?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fish_types: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      listings: {
+        Row: {
+          catch_date: string
+          created_at: string
+          description: string | null
+          expires_at: string
+          fish_type_id: string
+          fisherman_id: string
+          id: string
+          image_url: string | null
+          location: string
+          price_per_kg: number
+          status: string
+          title: string
+          total_price: number | null
+          updated_at: string
+          weight_kg: number
+        }
+        Insert: {
+          catch_date: string
+          created_at?: string
+          description?: string | null
+          expires_at: string
+          fish_type_id: string
+          fisherman_id: string
+          id?: string
+          image_url?: string | null
+          location: string
+          price_per_kg: number
+          status?: string
+          title: string
+          total_price?: number | null
+          updated_at?: string
+          weight_kg: number
+        }
+        Update: {
+          catch_date?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string
+          fish_type_id?: string
+          fisherman_id?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          price_per_kg?: number
+          status?: string
+          title?: string
+          total_price?: number | null
+          updated_at?: string
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_fish_type_id_fkey"
+            columns: ["fish_type_id"]
+            isOneToOne: false
+            referencedRelation: "fish_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_fisherman_id_fkey"
+            columns: ["fisherman_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          delivery_address: string
+          delivery_date: string | null
+          id: string
+          listing_id: string
+          payment_status: string
+          price_per_kg: number
+          quantity_kg: number
+          seller_id: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          delivery_address: string
+          delivery_date?: string | null
+          id?: string
+          listing_id: string
+          payment_status?: string
+          price_per_kg: number
+          quantity_kg: number
+          seller_id: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          delivery_address?: string
+          delivery_date?: string | null
+          id?: string
+          listing_id?: string
+          payment_status?: string
+          price_per_kg?: number
+          quantity_kg?: number
+          seller_id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_history: {
+        Row: {
+          avg_price: number
+          created_at: string
+          date: string
+          fish_type_id: string
+          id: string
+          location: string | null
+          max_price: number
+          min_price: number
+          total_volume_kg: number
+        }
+        Insert: {
+          avg_price: number
+          created_at?: string
+          date: string
+          fish_type_id: string
+          id?: string
+          location?: string | null
+          max_price: number
+          min_price: number
+          total_volume_kg: number
+        }
+        Update: {
+          avg_price?: number
+          created_at?: string
+          date?: string
+          fish_type_id?: string
+          id?: string
+          location?: string | null
+          max_price?: number
+          min_price?: number
+          total_volume_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_history_fish_type_id_fkey"
+            columns: ["fish_type_id"]
+            isOneToOne: false
+            referencedRelation: "fish_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          full_name: string
+          id: string
+          is_verified: boolean | null
+          phone: string | null
+          rating: number | null
+          role: Database["public"]["Enums"]["user_role"]
+          state: string | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          is_verified?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_verified?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          rating: number
+          reviewed_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewed_id: string
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewed_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewed_id_fkey"
+            columns: ["reviewed_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +383,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "fisherman" | "supplier" | "hotel" | "market" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +510,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["fisherman", "supplier", "hotel", "market", "admin"],
+    },
   },
 } as const
