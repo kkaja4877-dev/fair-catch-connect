@@ -32,6 +32,20 @@ const Contact = () => {
       phone: "+91 98765 43213",
       email: "mangalore@seatrade.in", 
       hours: "5:30 AM - 8:00 PM"
+    },
+    {
+      city: "Rameshwaram",
+      address: "Rameshwaram Fishing Harbor",
+      phone: "+91 98765 43214",
+      email: "rameshwaram@seatrade.in",
+      hours: "5:00 AM - 8:00 PM"
+    },
+    {
+      city: "Ramanathapuram",
+      address: "Ramanathapuram Port",
+      phone: "+91 98765 43215",
+      email: "ramanathapuram@seatrade.in",
+      hours: "5:30 AM - 7:30 PM"
     }
   ]
 

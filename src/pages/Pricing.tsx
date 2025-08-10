@@ -3,8 +3,20 @@ import PricingTrends from "@/components/PricingTrends"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/enhanced-button"
 import { CheckCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 const Pricing = () => {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const handlePlanSelect = (planName: string) => {
+    if (user) {
+      navigate('/dashboard')
+    } else {
+      navigate('/auth')
+    }
+  }
   const plans = [
     {
       name: "Fisherman",
@@ -99,6 +111,7 @@ const Pricing = () => {
                     <Button 
                       variant={index === 1 ? "ocean" : "outline"} 
                       className="w-full"
+                      onClick={() => handlePlanSelect(plan.name)}
                     >
                       {plan.price === "Free" ? "Get Started" : "Start Free Trial"}
                     </Button>
