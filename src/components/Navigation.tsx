@@ -25,17 +25,20 @@ const Navigation = () => {
             <a href="#how-it-works" className="text-foreground hover:text-primary transition-colors">
               How It Works
             </a>
-            <a href="#pricing" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
               Pricing
-            </a>
-            <a href="#contact" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
               Contact
-            </a>
+            </Link>
           </div>
           
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
+                <Link to="/dashboard">
+                  <Button variant="outline" size="sm">Dashboard</Button>
+                </Link>
                 <div className="flex items-center space-x-2 text-sm">
                   <User className="h-4 w-4" />
                   <span className="text-muted-foreground">
@@ -78,15 +81,18 @@ const Navigation = () => {
               <a href="#how-it-works" className="text-foreground hover:text-primary transition-colors">
                 How It Works
               </a>
-              <a href="#pricing" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
                 Pricing
-              </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors">
+              </Link>
+              <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
                 Contact
-              </a>
+              </Link>
               <div className="flex flex-col gap-2 mt-4">
                 {user ? (
                   <>
+                    <Link to="/dashboard">
+                      <Button variant="outline" className="w-full">Dashboard</Button>
+                    </Link>
                     <div className="text-sm text-muted-foreground">
                       {profile?.full_name} ({profile?.role})
                     </div>
