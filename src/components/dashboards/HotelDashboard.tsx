@@ -106,6 +106,17 @@ const HotelDashboard = () => {
       }
 
       const quantity = parseFloat(orderQuantity) || listing.weight_kg
+      
+      if (quantity <= 0) {
+        toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
+        return
+      }
+
+      if (quantity > listing.weight_kg) {
+        toast({ title: "Error", description: "Quantity cannot exceed available stock", variant: "destructive" })
+        return
+      }
+
       const { error } = await supabase.from('orders').insert([{
         listing_id: listing.id,
         buyer_id: profileData.id,

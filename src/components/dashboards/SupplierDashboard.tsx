@@ -95,6 +95,22 @@ const SupplierDashboard = () => {
 
   const handlePlaceBid = async () => {
     try {
+      // Validate required fields
+      if (!bidAmount || !quantity) {
+        toast({ title: "Error", description: "Please enter bid amount and quantity", variant: "destructive" })
+        return
+      }
+
+      if (parseFloat(bidAmount) <= 0 || parseFloat(quantity) <= 0) {
+        toast({ title: "Error", description: "Bid amount and quantity must be greater than 0", variant: "destructive" })
+        return
+      }
+
+      if (parseFloat(quantity) > selectedListing.weight_kg) {
+        toast({ title: "Error", description: "Quantity cannot exceed available stock", variant: "destructive" })
+        return
+      }
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')

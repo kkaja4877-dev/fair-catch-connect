@@ -119,6 +119,13 @@ const FishermanDashboard = () => {
 
   const handleAddListing = async () => {
     try {
+      // Validate required fields
+      if (!newListing.title || !newListing.fish_type_id || !newListing.weight_kg || 
+          !newListing.price_per_kg || !newListing.location || !newListing.catch_date) {
+        toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" })
+        return
+      }
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
@@ -130,13 +137,25 @@ const FishermanDashboard = () => {
         return
       }
 
+      // Set default expires_at to 24 hours from now if not provided
+      let expiresAt = new Date()
+      if (newListing.expires_at) {
+        expiresAt = new Date(newListing.expires_at)
+        if (isNaN(expiresAt.getTime())) {
+          toast({ title: "Error", description: "Invalid expiry date", variant: "destructive" })
+          return
+        }
+      } else {
+        expiresAt.setHours(expiresAt.getHours() + 24)
+      }
+
       const { error } = await supabase.from('listings').insert([{
         ...newListing,
         fisherman_id: profileData.id,
         weight_kg: parseFloat(newListing.weight_kg),
         price_per_kg: parseFloat(newListing.price_per_kg),
         total_price: parseFloat(newListing.weight_kg) * parseFloat(newListing.price_per_kg),
-        expires_at: new Date(newListing.expires_at).toISOString()
+        expires_at: expiresAt.toISOString()
       }])
 
       if (error) throw error

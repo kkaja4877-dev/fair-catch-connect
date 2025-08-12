@@ -86,6 +86,23 @@ const BusinessDashboard = () => {
 
   const handleBulkOrder = async (listing) => {
     try {
+      if (!bulkOrderQuantity) {
+        toast({ title: "Error", description: "Please enter quantity", variant: "destructive" })
+        return
+      }
+
+      const quantity = parseFloat(bulkOrderQuantity)
+      
+      if (quantity <= 0) {
+        toast({ title: "Error", description: "Quantity must be greater than 0", variant: "destructive" })
+        return
+      }
+
+      if (quantity > listing.weight_kg) {
+        toast({ title: "Error", description: "Quantity cannot exceed available stock", variant: "destructive" })
+        return
+      }
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
@@ -97,7 +114,6 @@ const BusinessDashboard = () => {
         return
       }
 
-      const quantity = parseFloat(bulkOrderQuantity)
       const { error } = await supabase.from('orders').insert([{
         listing_id: listing.id,
         buyer_id: profileData.id,
