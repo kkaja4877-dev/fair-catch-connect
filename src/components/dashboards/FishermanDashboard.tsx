@@ -20,6 +20,7 @@ const FishermanDashboard = () => {
   const [orders, setOrders] = useState([])
   const [fishTypes, setFishTypes] = useState([])
   const [isAddingListing, setIsAddingListing] = useState(false)
+  const [interests, setInterests] = useState([])
 
   const [newListing, setNewListing] = useState({
     title: "",
@@ -43,7 +44,8 @@ const FishermanDashboard = () => {
       fetchFishTypes(),
       fetchMyListings(),
       fetchMyBids(),
-      fetchMyOrders()
+      fetchMyOrders(),
+      fetchInterests()
     ])
   }
 
@@ -115,6 +117,57 @@ const FishermanDashboard = () => {
       .order('created_at', { ascending: false })
     
     if (data) setOrders(data)
+  }
+
+  const fetchInterests = async () => {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profileData) return
+
+    // Note: Interests table would be queried here if types were available
+    setInterests([])
+  }
+
+  const handleAcceptBid = async (bid) => {
+    try {
+      // Update bid status
+      await supabase.from('bids').update({ status: 'accepted' }).eq('id', bid.id)
+      
+      // Create order
+      await supabase.from('orders').insert([{
+        listing_id: bid.listing_id,
+        buyer_id: bid.bidder_id,
+        seller_id: profile.id,
+        quantity_kg: bid.quantity_kg,
+        price_per_kg: bid.bid_amount / bid.quantity_kg,
+        total_amount: bid.total_bid,
+        delivery_address: 'To be confirmed'
+      }])
+
+      // Note: Notifications would be created here
+
+      toast({ title: "Success", description: "Bid accepted successfully!" })
+      fetchMyBids()
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleRejectBid = async (bid) => {
+    try {
+      await supabase.from('bids').update({ status: 'rejected' }).eq('id', bid.id)
+      
+      // Note: Notifications would be created here
+
+      toast({ title: "Success", description: "Bid rejected" })
+      fetchMyBids()
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
   }
 
   const handleAddListing = async () => {
@@ -304,10 +357,36 @@ const FishermanDashboard = () => {
                   </div>
                   {bid.status === 'pending' && (
                     <div className="flex gap-2 mt-3">
-                      <Button size="sm" variant="default">Accept</Button>
-                      <Button size="sm" variant="outline">Decline</Button>
+                      <Button size="sm" variant="default" onClick={() => handleAcceptBid(bid)}>Accept</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleRejectBid(bid)}>Decline</Button>
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Interested Buyers */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Interested Buyers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {interests.map((interest) => (
+                <div key={interest.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold">{interest.profiles?.full_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Interested in: {interest.listings?.title}
+                      </p>
+                      {interest.message && (
+                        <p className="text-sm mt-2 bg-muted p-2 rounded">{interest.message}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

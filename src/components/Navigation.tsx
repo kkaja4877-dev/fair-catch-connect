@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/enhanced-button"
-import { Fish, Menu, X, User, LogOut } from "lucide-react"
+import { Fish, Menu, X, User, LogOut, Bell } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { Link } from "react-router-dom"
@@ -33,9 +33,12 @@ const Navigation = () => {
             </Link>
           </div>
           
-          <div className="hidden md:flex items-center gap-4">
+           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
+                <Button variant="ghost" size="sm">
+                  <Bell className="h-4 w-4" />
+                </Button>
                 <Link to="/dashboard">
                   <Button variant="outline" size="sm">Dashboard</Button>
                 </Link>

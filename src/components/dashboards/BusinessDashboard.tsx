@@ -135,6 +135,11 @@ const BusinessDashboard = () => {
     }
   }
 
+  const handlePayOrder = (order) => {
+    // Payment functionality would go here
+    console.log('Pay order:', order)
+  }
+
   const filteredListings = listings.filter(listing =>
     listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     listing.fish_types?.name.toLowerCase().includes(searchTerm.toLowerCase())
