@@ -30,7 +30,8 @@ const FishermanDashboard = () => {
     description: "",
     location: "",
     catch_date: "",
-    expires_at: ""
+    expires_at: "",
+    image_url: ""
   })
 
   useEffect(() => {
@@ -202,14 +203,20 @@ const FishermanDashboard = () => {
         expiresAt.setHours(expiresAt.getHours() + 24)
       }
 
-      const { error } = await supabase.from('listings').insert([{
-        ...newListing,
+      const listingData = {
+        title: newListing.title,
+        fish_type_id: newListing.fish_type_id,
         fisherman_id: profileData.id,
         weight_kg: parseFloat(newListing.weight_kg),
         price_per_kg: parseFloat(newListing.price_per_kg),
-        total_price: parseFloat(newListing.weight_kg) * parseFloat(newListing.price_per_kg),
-        expires_at: expiresAt.toISOString()
-      }])
+        description: newListing.description,
+        location: newListing.location,
+        catch_date: newListing.catch_date,
+        expires_at: expiresAt.toISOString(),
+        image_url: newListing.image_url || null
+      }
+
+      const { error } = await supabase.from('listings').insert([listingData])
 
       if (error) throw error
 
@@ -223,7 +230,8 @@ const FishermanDashboard = () => {
         description: "",
         location: "",
         catch_date: "",
-        expires_at: ""
+        expires_at: "",
+        image_url: ""
       })
       fetchMyListings()
     } catch (error) {
@@ -465,13 +473,13 @@ const FishermanDashboard = () => {
                   onChange={(e) => setNewListing({...newListing, catch_date: e.target.value})}
                 />
               </div>
-              <div className="col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Fresh catch description..."
-                  value={newListing.description}
-                  onChange={(e) => setNewListing({...newListing, description: e.target.value})}
+              <div>
+                <Label htmlFor="image_url">Image URL (optional)</Label>
+                <Input
+                  id="image_url"
+                  placeholder="https://example.com/image.jpg"
+                  value={newListing.image_url}
+                  onChange={(e) => setNewListing({...newListing, image_url: e.target.value})}
                 />
               </div>
               <div>
@@ -481,6 +489,15 @@ const FishermanDashboard = () => {
                   type="datetime-local"
                   value={newListing.expires_at}
                   onChange={(e) => setNewListing({...newListing, expires_at: e.target.value})}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Fresh catch description..."
+                  value={newListing.description}
+                  onChange={(e) => setNewListing({...newListing, description: e.target.value})}
                 />
               </div>
             </div>
