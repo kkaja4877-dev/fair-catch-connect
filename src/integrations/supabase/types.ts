@@ -116,6 +116,33 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string
+          latitude: number | null
+          listing_id: string
+          longitude: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url: string
+          latitude?: number | null
+          listing_id: string
+          longitude?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          latitude?: number | null
+          listing_id?: string
+          longitude?: number | null
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           catch_date: string
@@ -185,6 +212,33 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string
+          message: string
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id: string
+          message: string
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string
+          message?: string
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -222,11 +276,13 @@ export type Database = {
         Row: {
           advance_amount: number | null
           buyer_id: string
+          chat_summary: string | null
           created_at: string
           delivery_address: string
           delivery_date: string | null
           id: string
           listing_id: string
+          negotiated_price: number | null
           payment_method: string | null
           payment_screenshot_url: string | null
           payment_status: string
@@ -242,11 +298,13 @@ export type Database = {
         Insert: {
           advance_amount?: number | null
           buyer_id: string
+          chat_summary?: string | null
           created_at?: string
           delivery_address: string
           delivery_date?: string | null
           id?: string
           listing_id: string
+          negotiated_price?: number | null
           payment_method?: string | null
           payment_screenshot_url?: string | null
           payment_status?: string
@@ -262,11 +320,13 @@ export type Database = {
         Update: {
           advance_amount?: number | null
           buyer_id?: string
+          chat_summary?: string | null
           created_at?: string
           delivery_address?: string
           delivery_date?: string | null
           id?: string
           listing_id?: string
+          negotiated_price?: number | null
           payment_method?: string | null
           payment_screenshot_url?: string | null
           payment_status?: string

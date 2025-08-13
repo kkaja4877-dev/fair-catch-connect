@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { ShoppingCart, TrendingUp, DollarSign, Package, Eye, Search } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Fish, ShoppingCart, TrendingUp, DollarSign, Plus, Eye, Star, MessageCircle, Heart, Search } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
+import NotificationBell from "../NotificationBell"
+import PaymentModal from "../PaymentModal"
+import ChatModal from "../ChatModal"
 
 const SupplierDashboard = () => {
   const { user, profile } = useAuth()
@@ -19,6 +22,8 @@ const SupplierDashboard = () => {
   const [selectedListing, setSelectedListing] = useState(null)
   const [bidAmount, setBidAmount] = useState("")
   const [quantity, setQuantity] = useState("")
+  const [paymentModal, setPaymentModal] = useState({ isOpen: false, order: null })
+  const [chatModal, setChatModal] = useState({ isOpen: false, listing: null, otherParty: null })
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
@@ -122,12 +127,14 @@ const SupplierDashboard = () => {
         return
       }
 
+      const totalBidAmount = parseFloat(bidAmount) * parseFloat(quantity)
+      
       const { error } = await supabase.from('bids').insert([{
         listing_id: selectedListing.id,
         bidder_id: profileData.id,
         bid_amount: parseFloat(bidAmount),
         quantity_kg: parseFloat(quantity),
-        total_bid: parseFloat(bidAmount) * parseFloat(quantity)
+        total_bid: totalBidAmount
       }])
 
       if (error) throw error
@@ -155,27 +162,53 @@ const SupplierDashboard = () => {
         return
       }
 
-      const { error } = await supabase.from('orders').insert([{
+      const totalAmount = listing.weight_kg * listing.price_per_kg
+
+      const { data: order, error } = await supabase.from('orders').insert([{
         listing_id: listing.id,
         buyer_id: profileData.id,
         seller_id: listing.fisherman_id,
         quantity_kg: listing.weight_kg,
         price_per_kg: listing.price_per_kg,
-        total_amount: listing.total_price,
+        total_amount: totalAmount,
         delivery_address: "To be provided"
-      }])
+      }]).select().single()
 
       if (error) throw error
-
-      // Update listing status
-      await supabase
-        .from('listings')
-        .update({ status: 'sold' })
-        .eq('id', listing.id)
 
       toast({ title: "Success", description: "Order placed successfully!" })
       fetchAvailableListings()
       fetchMyOrders()
+      
+      // Open payment modal
+      setPaymentModal({ isOpen: true, order })
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleMarkInterested = async (listing) => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profileData) {
+        toast({ title: "Error", description: "Profile not found", variant: "destructive" })
+        return
+      }
+
+      const { error } = await supabase.from('interests').insert([{
+        listing_id: listing.id,
+        buyer_id: profileData.id,
+        message: `Interested in ${listing.title}`
+      }])
+
+      if (error) throw error
+
+      toast({ title: "Success", description: "Interest marked!" })
     } catch (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     }
@@ -196,7 +229,7 @@ const SupplierDashboard = () => {
           <h1 className="text-3xl font-bold">Supplier Dashboard</h1>
           <p className="text-muted-foreground">Source fresh seafood for your business</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -206,6 +239,7 @@ const SupplierDashboard = () => {
               className="pl-10 w-64"
             />
           </div>
+          <NotificationBell />
         </div>
       </div>
 
@@ -242,7 +276,7 @@ const SupplierDashboard = () => {
                 <p className="text-sm text-muted-foreground">Available Listings</p>
                 <p className="text-2xl font-bold">{listings.length}</p>
               </div>
-              <Package className="h-8 w-8 text-primary" />
+              <Fish className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -281,52 +315,32 @@ const SupplierDashboard = () => {
                   <p className="text-lg font-bold text-primary">₹{listing.price_per_kg}/kg</p>
                   <div className="flex gap-2 mt-3">
                     <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="outline" onClick={() => setSelectedListing(listing)}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View & Bid
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{listing.title}</DialogTitle>
-                          <DialogDescription>
-                            Place a bid or buy directly
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="bidAmount">Bid Amount (per kg)</Label>
-                              <Input
-                                id="bidAmount"
-                                placeholder="₹650"
-                                value={bidAmount}
-                                onChange={(e) => setBidAmount(e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="quantity">Quantity (kg)</Label>
-                              <Input
-                                id="quantity"
-                                placeholder="10"
-                                value={quantity}
-                                onChange={(e) => setQuantity(e.target.value)}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button onClick={handlePlaceBid} className="flex-1">
-                              Place Bid
-                            </Button>
-                            <Button variant="ocean" onClick={() => handleBuyNow(listing)} className="flex-1">
-                              Buy Now
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedListing(listing)}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View & Bid
+                      </Button>
                     </Dialog>
-                    <Button size="sm" variant="ocean" onClick={() => handleBuyNow(listing)}>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleMarkInterested(listing)}
+                    >
+                      <Heart className="h-4 w-4 mr-1" />
+                      Interested
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setChatModal({ 
+                        isOpen: true, 
+                        listing, 
+                        otherParty: listing.profiles 
+                      })}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Contact
+                    </Button>
+                    <Button size="sm" onClick={() => handleBuyNow(listing)}>
                       Buy Now
                     </Button>
                   </div>
@@ -357,9 +371,19 @@ const SupplierDashboard = () => {
                         ₹{'bid_amount' in item ? item.total_bid : item.total_amount}
                       </p>
                     </div>
-                    <Badge variant={item.status === 'pending' ? 'default' : 'secondary'}>
-                      {item.status}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant={item.status === 'pending' ? 'default' : 'secondary'}>
+                        {item.status}
+                      </Badge>
+                      {!('bid_amount' in item) && item.payment_status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => setPaymentModal({ isOpen: true, order: item })}
+                        >
+                          Pay Now
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -367,6 +391,69 @@ const SupplierDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bid Modal */}
+      {selectedListing && (
+        <Dialog open={!!selectedListing} onOpenChange={() => setSelectedListing(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{selectedListing.title}</DialogTitle>
+              <DialogDescription>
+                Place a bid for this fresh catch
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bidAmount">Bid Amount (per kg)</Label>
+                  <Input
+                    id="bidAmount"
+                    placeholder="₹650"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="quantity">Quantity (kg)</Label>
+                  <Input
+                    id="quantity"
+                    placeholder="10"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handlePlaceBid} className="flex-1">
+                  Place Bid
+                </Button>
+                <Button variant="outline" onClick={() => setSelectedListing(null)} className="flex-1">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal({ isOpen: false, order: null })}
+        order={paymentModal.order}
+        onPaymentComplete={() => {
+          fetchMyOrders()
+          setPaymentModal({ isOpen: false, order: null })
+        }}
+      />
+
+      {/* Chat Modal */}
+      <ChatModal
+        isOpen={chatModal.isOpen}
+        onClose={() => setChatModal({ isOpen: false, listing: null, otherParty: null })}
+        listing={chatModal.listing}
+        otherParty={chatModal.otherParty}
+      />
     </div>
   )
 }

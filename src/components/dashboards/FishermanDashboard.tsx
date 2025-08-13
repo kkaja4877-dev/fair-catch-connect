@@ -8,9 +8,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, Fish, TrendingUp, DollarSign, Package, Eye, Edit, Trash2 } from "lucide-react"
+import { Plus, Fish, TrendingUp, DollarSign, Package, Eye, Edit, Trash2, MessageCircle, CheckCircle, XCircle } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
+import ImageUploadWithGeotag from "../ImageUploadWithGeotag"
+import EditListingModal from "../EditListingModal"
+import ChatModal from "../ChatModal"
+import PaymentModal from "../PaymentModal"
 
 const FishermanDashboard = () => {
   const { user, profile } = useAuth()
@@ -21,6 +25,10 @@ const FishermanDashboard = () => {
   const [fishTypes, setFishTypes] = useState([])
   const [isAddingListing, setIsAddingListing] = useState(false)
   const [interests, setInterests] = useState([])
+  const [pendingOrders, setPendingOrders] = useState([])
+  const [editingListing, setEditingListing] = useState(null)
+  const [chatModal, setChatModal] = useState({ isOpen: false, listing: null, otherParty: null })
+  const [paymentModal, setPaymentModal] = useState({ isOpen: false, order: null })
 
   const [newListing, setNewListing] = useState({
     title: "",
@@ -46,7 +54,8 @@ const FishermanDashboard = () => {
       fetchMyListings(),
       fetchMyBids(),
       fetchMyOrders(),
-      fetchInterests()
+      fetchInterests(),
+      fetchPendingOrders()
     ])
   }
 
@@ -129,8 +138,40 @@ const FishermanDashboard = () => {
 
     if (!profileData) return
 
-    // Note: Interests table would be queried here if types were available
-    setInterests([])
+    const { data } = await supabase
+      .from('interests')
+      .select(`
+        *,
+        listings (title, fish_types (name)),
+        profiles!interests_buyer_id_fkey (full_name)
+      `)
+      .eq('listings.fisherman_id', profileData.id)
+      .order('created_at', { ascending: false })
+    
+    if (data) setInterests(data)
+  }
+
+  const fetchPendingOrders = async () => {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profileData) return
+
+    const { data } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        listings (title, fish_types (name)),
+        profiles!orders_buyer_id_fkey (full_name)
+      `)
+      .eq('seller_id', profileData.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    
+    if (data) setPendingOrders(data)
   }
 
   const handleAcceptBid = async (bid) => {
@@ -149,10 +190,40 @@ const FishermanDashboard = () => {
         delivery_address: 'To be confirmed'
       }])
 
-      // Note: Notifications would be created here
-
       toast({ title: "Success", description: "Bid accepted successfully!" })
       fetchMyBids()
+      fetchPendingOrders()
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleAcceptOrder = async (order) => {
+    try {
+      await supabase.from('orders').update({ status: 'confirmed' }).eq('id', order.id)
+      toast({ title: "Success", description: "Order accepted!" })
+      fetchPendingOrders()
+      fetchMyOrders()
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleDeclineOrder = async (order) => {
+    try {
+      await supabase.from('orders').update({ status: 'cancelled' }).eq('id', order.id)
+      toast({ title: "Success", description: "Order declined" })
+      fetchPendingOrders()
+    } catch (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    }
+  }
+
+  const handleDeleteListing = async (listing) => {
+    try {
+      await supabase.from('listings').delete().eq('id', listing.id)
+      toast({ title: "Success", description: "Listing deleted successfully!" })
+      fetchMyListings()
     } catch (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     }
@@ -239,6 +310,10 @@ const FishermanDashboard = () => {
     }
   }
 
+  const handleImageUpload = (imageData) => {
+    setNewListing({...newListing, image_url: imageData.url})
+  }
+
   const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0)
   const activeListings = listings.filter(l => l.status === 'available').length
   const totalBidsReceived = bids.length
@@ -309,6 +384,51 @@ const FishermanDashboard = () => {
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Pending Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {pendingOrders.map((order) => (
+                <div key={order.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold">{order.listings?.title}</h4>
+                    <Badge variant="default">Pending</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Buyer: {order.profiles?.full_name} • {order.quantity_kg}kg
+                  </p>
+                  <p className="text-lg font-bold text-primary">₹{order.total_amount}</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" onClick={() => handleAcceptOrder(order)}>
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Accept
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDeclineOrder(order)}>
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Decline
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setChatModal({ 
+                        isOpen: true, 
+                        listing: order.listings, 
+                        otherParty: order.profiles 
+                      })}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Chat
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* My Listings */}
         <Card>
           <CardHeader>
@@ -327,11 +447,19 @@ const FishermanDashboard = () => {
                   <p className="text-sm text-muted-foreground mb-2">{listing.fish_types?.name} • {listing.weight_kg}kg</p>
                   <p className="text-lg font-bold text-primary">₹{listing.price_per_kg}/kg</p>
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setEditingListing(listing)}
+                    >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDeleteListing(listing)}
+                    >
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete
                     </Button>
@@ -474,12 +602,9 @@ const FishermanDashboard = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="image_url">Image URL (optional)</Label>
-                <Input
-                  id="image_url"
-                  placeholder="https://example.com/image.jpg"
+                <ImageUploadWithGeotag
                   value={newListing.image_url}
-                  onChange={(e) => setNewListing({...newListing, image_url: e.target.value})}
+                  onImageUploaded={handleImageUpload}
                 />
               </div>
               <div>
@@ -512,6 +637,37 @@ const FishermanDashboard = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Listing Modal */}
+      <EditListingModal
+        isOpen={!!editingListing}
+        onClose={() => setEditingListing(null)}
+        listing={editingListing}
+        fishTypes={fishTypes}
+        onSuccess={() => {
+          fetchMyListings()
+          setEditingListing(null)
+        }}
+      />
+
+      {/* Chat Modal */}
+      <ChatModal
+        isOpen={chatModal.isOpen}
+        onClose={() => setChatModal({ isOpen: false, listing: null, otherParty: null })}
+        listing={chatModal.listing}
+        otherParty={chatModal.otherParty}
+      />
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal({ isOpen: false, order: null })}
+        order={paymentModal.order}
+        onPaymentComplete={() => {
+          fetchMyOrders()
+          fetchPendingOrders()
+        }}
+      />
     </div>
   )
 }
