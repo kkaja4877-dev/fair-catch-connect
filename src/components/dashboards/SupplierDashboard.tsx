@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Fish, ShoppingCart, TrendingUp, DollarSign, Plus, Eye, Star, MessageCircle, Heart, Search } from "lucide-react"
+import { Fish, ShoppingCart, TrendingUp, DollarSign, Plus, Eye, Star, MessageCircle, Heart, Search, Settings, MapPin, Truck } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import NotificationBell from "../NotificationBell"
 import PaymentModal from "../PaymentModal"
 import ChatModal from "../ChatModal"
+import DeliveryTrackingModal from "../DeliveryTrackingModal"
+import ProfileSettingsModal from "../ProfileSettingsModal"
 
 const SupplierDashboard = () => {
   const { user, profile } = useAuth()
@@ -24,6 +26,8 @@ const SupplierDashboard = () => {
   const [quantity, setQuantity] = useState("")
   const [paymentModal, setPaymentModal] = useState({ isOpen: false, order: null })
   const [chatModal, setChatModal] = useState({ isOpen: false, listing: null, otherParty: null })
+  const [deliveryModal, setDeliveryModal] = useState({ isOpen: false, order: null })
+  const [profileModal, setProfileModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
@@ -239,6 +243,10 @@ const SupplierDashboard = () => {
               className="pl-10 w-64"
             />
           </div>
+          <Button variant="outline" onClick={() => setProfileModal(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
           <NotificationBell />
         </div>
       </div>
@@ -383,6 +391,16 @@ const SupplierDashboard = () => {
                           Pay Now
                         </Button>
                       )}
+                      {!('bid_amount' in item) && item.payment_status === 'paid' && item.delivery_status !== 'delivered' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setDeliveryModal({ isOpen: true, order: item })}
+                        >
+                          <MapPin className="h-4 w-4 mr-1" />
+                          Track
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -453,6 +471,25 @@ const SupplierDashboard = () => {
         onClose={() => setChatModal({ isOpen: false, listing: null, otherParty: null })}
         listing={chatModal.listing}
         otherParty={chatModal.otherParty}
+      />
+
+      {/* Delivery Tracking Modal */}
+      <DeliveryTrackingModal
+        isOpen={deliveryModal.isOpen}
+        onClose={() => setDeliveryModal({ isOpen: false, order: null })}
+        order={deliveryModal.order}
+        onDeliveryComplete={() => {
+          fetchMyOrders()
+        }}
+      />
+
+      {/* Profile Settings Modal */}
+      <ProfileSettingsModal
+        isOpen={profileModal}
+        onClose={() => setProfileModal(false)}
+        onProfileUpdate={() => {
+          // Refresh profile data if needed
+        }}
       />
     </div>
   )

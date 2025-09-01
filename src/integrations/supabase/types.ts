@@ -276,10 +276,18 @@ export type Database = {
         Row: {
           advance_amount: number | null
           buyer_id: string
+          buyer_latitude: number | null
+          buyer_longitude: number | null
           chat_summary: string | null
           created_at: string
           delivery_address: string
+          delivery_completed_at: string | null
           delivery_date: string | null
+          delivery_otp: string | null
+          delivery_status: string | null
+          estimated_delivery_time: string | null
+          fisherman_latitude: number | null
+          fisherman_longitude: number | null
           id: string
           listing_id: string
           negotiated_price: number | null
@@ -292,16 +300,25 @@ export type Database = {
           seller_id: string
           status: string
           total_amount: number
+          tracking_enabled: boolean | null
           updated_at: string
           upi_transaction_id: string | null
         }
         Insert: {
           advance_amount?: number | null
           buyer_id: string
+          buyer_latitude?: number | null
+          buyer_longitude?: number | null
           chat_summary?: string | null
           created_at?: string
           delivery_address: string
+          delivery_completed_at?: string | null
           delivery_date?: string | null
+          delivery_otp?: string | null
+          delivery_status?: string | null
+          estimated_delivery_time?: string | null
+          fisherman_latitude?: number | null
+          fisherman_longitude?: number | null
           id?: string
           listing_id: string
           negotiated_price?: number | null
@@ -314,16 +331,25 @@ export type Database = {
           seller_id: string
           status?: string
           total_amount: number
+          tracking_enabled?: boolean | null
           updated_at?: string
           upi_transaction_id?: string | null
         }
         Update: {
           advance_amount?: number | null
           buyer_id?: string
+          buyer_latitude?: number | null
+          buyer_longitude?: number | null
           chat_summary?: string | null
           created_at?: string
           delivery_address?: string
+          delivery_completed_at?: string | null
           delivery_date?: string | null
+          delivery_otp?: string | null
+          delivery_status?: string | null
+          estimated_delivery_time?: string | null
+          fisherman_latitude?: number | null
+          fisherman_longitude?: number | null
           id?: string
           listing_id?: string
           negotiated_price?: number | null
@@ -336,6 +362,7 @@ export type Database = {
           seller_id?: string
           status?: string
           total_amount?: number
+          tracking_enabled?: boolean | null
           updated_at?: string
           upi_transaction_id?: string | null
         }
@@ -415,12 +442,15 @@ export type Database = {
           full_name: string
           id: string
           is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
           phone: string | null
           rating: number | null
           role: Database["public"]["Enums"]["user_role"]
           state: string | null
           total_reviews: number | null
           updated_at: string
+          upi_id: string | null
           user_id: string
         }
         Insert: {
@@ -430,12 +460,15 @@ export type Database = {
           full_name: string
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           total_reviews?: number | null
           updated_at?: string
+          upi_id?: string | null
           user_id: string
         }
         Update: {
@@ -445,12 +478,15 @@ export type Database = {
           full_name?: string
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           total_reviews?: number | null
           updated_at?: string
+          upi_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -520,6 +556,10 @@ export type Database = {
           related_record_id?: string
           target_user_id: string
         }
+        Returns: string
+      }
+      generate_delivery_otp: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
     }

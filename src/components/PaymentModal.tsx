@@ -41,7 +41,7 @@ const PaymentModal = ({ isOpen, onClose, order, onPaymentComplete }: PaymentModa
         return
       }
 
-      // Update order with payment details
+      // Update order with payment details and set to awaiting delivery
       const { error } = await supabase
         .from('orders')
         .update({
@@ -49,15 +49,35 @@ const PaymentModal = ({ isOpen, onClose, order, onPaymentComplete }: PaymentModa
           payment_type: paymentType,
           advance_amount: paymentType === "advance" ? paymentAmount : 0,
           upi_transaction_id: transactionId,
-          payment_status: paymentType === "advance" ? 'partially_paid' : 'paid'
+          payment_status: paymentType === "advance" ? 'partially_paid' : 'paid',
+          status: paymentType === "advance" ? 'confirmed' : 'awaiting_delivery',
+          delivery_status: paymentType === "advance" ? 'pending' : 'ready_for_pickup'
         })
         .eq('id', order.id)
 
       if (error) throw error
 
-      // Note: Notifications would be created here if table exists
+      // Create notification for seller
+      const { data: sellerProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', order.seller_id)
+        .single()
 
-      toast({ title: "Success", description: "Payment processed successfully!" })
+      if (sellerProfile) {
+        await supabase.rpc('create_notification', {
+          target_user_id: sellerProfile.user_id,
+          notification_title: 'Payment Received',
+          notification_message: `Payment of ₹${paymentAmount} received for order #${order.id.slice(0, 8)}`,
+          notification_type: 'success',
+          related_record_id: order.id
+        })
+      }
+
+      toast({ 
+        title: "Success", 
+        description: paymentType === "advance" ? "Advance payment processed!" : "Payment successful! Order awaiting delivery." 
+      })
       onPaymentComplete()
       onClose()
     } catch (error) {

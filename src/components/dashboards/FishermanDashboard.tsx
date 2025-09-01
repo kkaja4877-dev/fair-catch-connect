@@ -8,13 +8,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, Fish, TrendingUp, DollarSign, Package, Eye, Edit, Trash2, MessageCircle, CheckCircle, XCircle } from "lucide-react"
+import { Plus, Fish, TrendingUp, DollarSign, Package, Eye, Edit, Trash2, MessageCircle, CheckCircle, XCircle, Navigation, MapPin, Truck, Settings } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import ImageUploadWithGeotag from "../ImageUploadWithGeotag"
 import EditListingModal from "../EditListingModal"
 import ChatModal from "../ChatModal"
 import PaymentModal from "../PaymentModal"
+import DeliveryTrackingModal from "../DeliveryTrackingModal"
+import ProfileSettingsModal from "../ProfileSettingsModal"
 
 const FishermanDashboard = () => {
   const { user, profile } = useAuth()
@@ -29,6 +31,8 @@ const FishermanDashboard = () => {
   const [editingListing, setEditingListing] = useState(null)
   const [chatModal, setChatModal] = useState({ isOpen: false, listing: null, otherParty: null })
   const [paymentModal, setPaymentModal] = useState({ isOpen: false, order: null })
+  const [deliveryModal, setDeliveryModal] = useState({ isOpen: false, order: null })
+  const [profileModal, setProfileModal] = useState(false)
 
   const [newListing, setNewListing] = useState({
     title: "",
@@ -325,10 +329,16 @@ const FishermanDashboard = () => {
           <h1 className="text-3xl font-bold">Fisherman Dashboard</h1>
           <p className="text-muted-foreground">Manage your catches and sales</p>
         </div>
-        <Button onClick={() => setIsAddingListing(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Catch
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setProfileModal(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+          <Button onClick={() => setIsAddingListing(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add New Catch
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -400,29 +410,39 @@ const FishermanDashboard = () => {
                   <p className="text-sm text-muted-foreground mb-2">
                     Buyer: {order.profiles?.full_name} • {order.quantity_kg}kg
                   </p>
-                  <p className="text-lg font-bold text-primary">₹{order.total_amount}</p>
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" onClick={() => handleAcceptOrder(order)}>
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Accept
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDeclineOrder(order)}>
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Decline
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setChatModal({ 
-                        isOpen: true, 
-                        listing: order.listings, 
-                        otherParty: order.profiles 
-                      })}
-                    >
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      Chat
-                    </Button>
-                  </div>
+                   <p className="text-lg font-bold text-primary">₹{order.total_amount}</p>
+                   <div className="flex gap-2 mt-3">
+                     <Button size="sm" onClick={() => handleAcceptOrder(order)}>
+                       <CheckCircle className="h-4 w-4 mr-1" />
+                       Accept
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => handleDeclineOrder(order)}>
+                       <XCircle className="h-4 w-4 mr-1" />
+                       Decline
+                     </Button>
+                     <Button 
+                       size="sm" 
+                       variant="outline"
+                       onClick={() => setChatModal({ 
+                         isOpen: true, 
+                         listing: order.listings, 
+                         otherParty: order.profiles 
+                       })}
+                     >
+                       <MessageCircle className="h-4 w-4 mr-1" />
+                       Chat
+                     </Button>
+                     {order.payment_status === 'paid' && order.delivery_status !== 'delivered' && (
+                       <Button 
+                         size="sm" 
+                         variant="outline"
+                         onClick={() => setDeliveryModal({ isOpen: true, order })}
+                       >
+                         <Truck className="h-4 w-4 mr-1" />
+                         Deliver
+                       </Button>
+                     )}
+                   </div>
                 </div>
               ))}
             </div>
@@ -666,6 +686,26 @@ const FishermanDashboard = () => {
         onPaymentComplete={() => {
           fetchMyOrders()
           fetchPendingOrders()
+        }}
+      />
+
+      {/* Delivery Tracking Modal */}
+      <DeliveryTrackingModal
+        isOpen={deliveryModal.isOpen}
+        onClose={() => setDeliveryModal({ isOpen: false, order: null })}
+        order={deliveryModal.order}
+        onDeliveryComplete={() => {
+          fetchMyOrders()
+          fetchPendingOrders()
+        }}
+      />
+
+      {/* Profile Settings Modal */}
+      <ProfileSettingsModal
+        isOpen={profileModal}
+        onClose={() => setProfileModal(false)}
+        onProfileUpdate={() => {
+          // Refresh profile data if needed
         }}
       />
     </div>
