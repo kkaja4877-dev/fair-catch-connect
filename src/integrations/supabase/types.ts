@@ -562,6 +562,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_public_profile_info: {
+        Args: { profile_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       user_role: "fisherman" | "supplier" | "hotel" | "market" | "admin"
