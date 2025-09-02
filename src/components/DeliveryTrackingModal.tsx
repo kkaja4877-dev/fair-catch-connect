@@ -40,7 +40,7 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
             delivery_otp: data,
             delivery_status: 'in_transit'
           })
-          .eq('id', order.id)
+          .eq('id', order?.id)
         
         toast({ 
           title: "Delivery OTP Generated", 
@@ -65,7 +65,7 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
       const { data: orderData } = await supabase
         .from('orders')
         .select('delivery_otp')
-        .eq('id', order.id)
+        .eq('id', order?.id)
         .single()
 
       if (!orderData || orderData.delivery_otp !== otp) {
@@ -81,7 +81,7 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
           status: 'completed',
           delivery_completed_at: new Date().toISOString()
         })
-        .eq('id', order.id)
+        .eq('id', order?.id)
 
       if (error) throw error
 
@@ -91,13 +91,13 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
       if (profile?.role === 'fisherman' || profile?.role === 'supplier') {
         notifications.push({
           title: "Earnings Updated",
-          message: `Payment of ₹${order.total_amount} has been processed`,
+          message: `Payment of ₹${order?.total_amount} has been processed`,
           type: "success"
         })
       } else if (profile?.role === 'hotel' || profile?.role === 'market') {
         notifications.push({
           title: "Stock Received",
-          message: `Your order of ${order.quantity_kg}kg has been delivered`,
+          message: `Your order of ${order?.quantity_kg}kg has been delivered`,
           type: "success"
         })
       }
@@ -113,12 +113,16 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
   }
 
   const handleNavigate = () => {
-    if (order.buyer_latitude && order.buyer_longitude) {
+    if (order?.buyer_latitude && order?.buyer_longitude) {
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${order.buyer_latitude},${order.buyer_longitude}`
       window.open(mapsUrl, '_blank')
     } else {
       toast({ title: "Info", description: "Buyer location not available for navigation", variant: "default" })
     }
+  }
+
+  if (!order) {
+    return null
   }
 
   return (
@@ -127,7 +131,7 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Delivery Tracking - Order #{order?.id?.slice(0, 8)}
+            Delivery Tracking - Order #{order.id?.slice(0, 8)}
           </DialogTitle>
           <DialogDescription>
             Track and manage order delivery with real-time location
@@ -140,12 +144,12 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
             <div className="h-80 bg-muted rounded-lg overflow-hidden">
               <MapComponent
                 fishermanLocation={
-                  order.fisherman_latitude && order.fisherman_longitude
+                  order?.fisherman_latitude && order?.fisherman_longitude
                     ? { lat: order.fisherman_latitude, lng: order.fisherman_longitude }
                     : null
                 }
                 buyerLocation={
-                  order.buyer_latitude && order.buyer_longitude
+                  order?.buyer_latitude && order?.buyer_longitude
                     ? { lat: order.buyer_latitude, lng: order.buyer_longitude }
                     : null
                 }
