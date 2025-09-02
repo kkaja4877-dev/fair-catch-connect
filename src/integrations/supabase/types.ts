@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "bids_bidder_id_fkey"
             columns: ["bidder_id"]
             isOneToOne: false
+            referencedRelation: "marketplace_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -201,6 +208,13 @@ export type Database = {
             columns: ["fish_type_id"]
             isOneToOne: false
             referencedRelation: "fish_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_fisherman_id_fkey"
+            columns: ["fisherman_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -371,6 +385,13 @@ export type Database = {
             foreignKeyName: "orders_buyer_id_fkey"
             columns: ["buyer_id"]
             isOneToOne: false
+            referencedRelation: "marketplace_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -379,6 +400,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -531,7 +559,21 @@ export type Database = {
             foreignKeyName: "reviews_reviewed_id_fkey"
             columns: ["reviewed_id"]
             isOneToOne: false
+            referencedRelation: "marketplace_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewed_id_fkey"
+            columns: ["reviewed_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -545,7 +587,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      marketplace_profiles: {
+        Row: {
+          city: string | null
+          full_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          rating: number | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          state: string | null
+          total_reviews: number | null
+        }
+        Insert: {
+          city?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified?: never
+          rating?: never
+          role?: Database["public"]["Enums"]["user_role"] | null
+          state?: string | null
+          total_reviews?: never
+        }
+        Update: {
+          city?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified?: never
+          rating?: never
+          role?: Database["public"]["Enums"]["user_role"] | null
+          state?: string | null
+          total_reviews?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_notification: {
@@ -563,6 +637,10 @@ export type Database = {
         Returns: string
       }
       get_public_profile_info: {
+        Args: { profile_id: string }
+        Returns: Json
+      }
+      get_safe_marketplace_profile: {
         Args: { profile_id: string }
         Returns: Json
       }
