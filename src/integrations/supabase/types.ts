@@ -636,10 +636,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
-      get_public_profile_info: {
-        Args: { profile_id: string }
-        Returns: Json
-      }
       get_safe_marketplace_profile: {
         Args: { profile_id: string }
         Returns: Json
