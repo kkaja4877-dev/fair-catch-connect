@@ -92,30 +92,6 @@ export type Database = {
         }
         Relationships: []
       }
-      interests: {
-        Row: {
-          buyer_id: string
-          created_at: string
-          id: string
-          listing_id: string
-          message: string | null
-        }
-        Insert: {
-          buyer_id: string
-          created_at?: string
-          id?: string
-          listing_id: string
-          message?: string | null
-        }
-        Update: {
-          buyer_id?: string
-          created_at?: string
-          id?: string
-          listing_id?: string
-          message?: string | null
-        }
-        Relationships: []
-      }
       listings: {
         Row: {
           catch_date: string
@@ -185,99 +161,51 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          message: string
-          related_id: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message: string
-          related_id?: string | null
-          title: string
-          type?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message?: string
-          related_id?: string | null
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       orders: {
         Row: {
-          advance_amount: number | null
           buyer_id: string
           created_at: string
           delivery_address: string
           delivery_date: string | null
           id: string
           listing_id: string
-          payment_method: string | null
-          payment_screenshot_url: string | null
           payment_status: string
-          payment_type: string | null
           price_per_kg: number
           quantity_kg: number
           seller_id: string
           status: string
           total_amount: number
           updated_at: string
-          upi_transaction_id: string | null
         }
         Insert: {
-          advance_amount?: number | null
           buyer_id: string
           created_at?: string
           delivery_address: string
           delivery_date?: string | null
           id?: string
           listing_id: string
-          payment_method?: string | null
-          payment_screenshot_url?: string | null
           payment_status?: string
-          payment_type?: string | null
           price_per_kg: number
           quantity_kg: number
           seller_id: string
           status?: string
           total_amount: number
           updated_at?: string
-          upi_transaction_id?: string | null
         }
         Update: {
-          advance_amount?: number | null
           buyer_id?: string
           created_at?: string
           delivery_address?: string
           delivery_date?: string | null
           id?: string
           listing_id?: string
-          payment_method?: string | null
-          payment_screenshot_url?: string | null
           payment_status?: string
-          payment_type?: string | null
           price_per_kg?: number
           quantity_kg?: number
           seller_id?: string
           status?: string
           total_amount?: number
           updated_at?: string
-          upi_transaction_id?: string | null
         }
         Relationships: [
           {
@@ -452,16 +380,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_notification: {
-        Args: {
-          target_user_id: string
-          notification_title: string
-          notification_message: string
-          notification_type?: string
-          related_record_id?: string
-        }
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
       user_role: "fisherman" | "supplier" | "hotel" | "market" | "admin"
