@@ -24,71 +24,76 @@ const MapComponent = ({
 }: MapComponentProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
-  const [mapboxToken, setMapboxToken] = useState("")
-  const [map, setMap] = useState<any>(null)
-  const [distance, setDistance] = useState<string>("")
-  const [duration, setDuration] = useState<string>("")
 
   useEffect(() => {
-    // For demo purposes, using a placeholder token
-    // In production, this should come from Supabase secrets
-    const token = "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw"
-    setMapboxToken(token)
-  }, [])
+    if (!mapRef.current) return
 
-  useEffect(() => {
-    if (!mapboxToken || !mapRef.current) return
-
-    // Create a simple map placeholder since we can't use actual Mapbox without proper token
+    // Create a map placeholder with enhanced safety
     const mapContainer = mapRef.current
     mapContainer.innerHTML = ''
     
     const mapDiv = document.createElement('div')
-    mapDiv.className = 'relative w-full h-full bg-slate-100 rounded-lg flex items-center justify-center'
+    mapDiv.className = 'relative w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center border border-blue-200'
     mapDiv.style.height = height
     
-    // Create map content
+    // Create map content with null safety
     const mapContent = document.createElement('div')
     mapContent.className = 'text-center p-6'
     
-    if (fishermanLocation && buyerLocation) {
+    const hasValidFishermanLocation = fishermanLocation?.lat && fishermanLocation?.lng
+    const hasValidBuyerLocation = buyerLocation?.lat && buyerLocation?.lng
+    
+    if (hasValidFishermanLocation && hasValidBuyerLocation) {
       mapContent.innerHTML = `
         <div class="space-y-4">
           <div class="flex justify-center items-center gap-4 mb-4">
-            <div class="flex items-center gap-2 bg-blue-100 px-3 py-2 rounded-lg">
-              <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span class="text-sm font-medium">Fisherman</span>
+            <div class="flex items-center gap-2 bg-blue-100 px-3 py-2 rounded-lg border border-blue-200">
+              <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+              <span class="text-sm font-medium text-blue-800">Fisherman/Supplier</span>
             </div>
-            <div class="flex-1 border-t-2 border-dashed border-gray-300"></div>
-            <div class="flex items-center gap-2 bg-green-100 px-3 py-2 rounded-lg">
-              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span class="text-sm font-medium">Buyer</span>
+            <div class="flex-1 border-t-2 border-dashed border-blue-300 relative">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="bg-blue-200 px-2 py-1 rounded text-xs text-blue-600">Route</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-green-100 px-3 py-2 rounded-lg border border-green-200">
+              <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span class="text-sm font-medium text-green-800">Buyer</span>
             </div>
           </div>
-          <div class="text-lg font-semibold text-gray-700">Route Overview</div>
+          <div class="text-lg font-semibold text-gray-700">Live Route Tracking</div>
           <div class="grid grid-cols-2 gap-4 text-sm">
-            <div class="bg-white p-3 rounded-lg">
-              <div class="font-medium">Distance</div>
+            <div class="bg-white/70 backdrop-blur-sm p-3 rounded-lg border">
+              <div class="font-medium text-gray-600">Estimated Distance</div>
               <div class="text-lg font-bold text-primary">~12.5 km</div>
             </div>
-            <div class="bg-white p-3 rounded-lg">
-              <div class="font-medium">ETA</div>
+            <div class="bg-white/70 backdrop-blur-sm p-3 rounded-lg border">
+              <div class="font-medium text-gray-600">Estimated Time</div>
               <div class="text-lg font-bold text-primary">~25 mins</div>
             </div>
           </div>
+          <div class="text-xs text-gray-500 bg-white/50 px-2 py-1 rounded">
+            Coordinates: ${fishermanLocation.lat.toFixed(4)}, ${fishermanLocation.lng.toFixed(4)} → ${buyerLocation.lat.toFixed(4)}, ${buyerLocation.lng.toFixed(4)}
+          </div>
         </div>
       `
-    } else if (fishermanLocation || buyerLocation) {
-      const locationType = fishermanLocation ? 'Fisherman' : 'Buyer'
+    } else if (hasValidFishermanLocation || hasValidBuyerLocation) {
+      const locationType = hasValidFishermanLocation ? 'Fisherman/Supplier' : 'Buyer'
+      const location = hasValidFishermanLocation ? fishermanLocation : buyerLocation
+      const colorClass = hasValidFishermanLocation ? 'blue' : 'green'
+      
       mapContent.innerHTML = `
         <div class="space-y-4">
           <div class="flex justify-center">
-            <div class="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-lg">
-              <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
-              <span class="font-medium">${locationType} Location</span>
+            <div class="flex items-center gap-2 bg-${colorClass}-100 px-4 py-2 rounded-lg border border-${colorClass}-200">
+              <div class="w-4 h-4 bg-${colorClass}-500 rounded-full animate-pulse"></div>
+              <span class="font-medium text-${colorClass}-800">${locationType} Location</span>
             </div>
           </div>
           <div class="text-gray-600">Location marked on map</div>
+          <div class="text-xs text-gray-500 bg-white/50 px-2 py-1 rounded">
+            Coordinates: ${location?.lat?.toFixed(4)}, ${location?.lng?.toFixed(4)}
+          </div>
         </div>
       `
     } else {
@@ -100,8 +105,11 @@ const MapComponent = ({
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
           </div>
-          <div class="text-gray-600">Map will show delivery route</div>
-          <div class="text-sm text-gray-500">Location tracking available</div>
+          <div class="text-gray-600 font-medium">No Location Data Available</div>
+          <div class="text-sm text-gray-500">Location coordinates will appear when delivery starts</div>
+          <div class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+            Waiting for location tracking...
+          </div>
         </div>
       `
     }
@@ -109,20 +117,36 @@ const MapComponent = ({
     mapDiv.appendChild(mapContent)
     mapContainer.appendChild(mapDiv)
 
-    // Add click handler for location selection
+    // Add click handler for location selection with safety
     if (onLocationSelect) {
-      mapDiv.addEventListener('click', (e) => {
-        const rect = mapDiv.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        
-        // Convert click position to mock coordinates
-        const lat = 12.9716 + (y / rect.height - 0.5) * 0.1
-        const lng = 77.5946 + (x / rect.width - 0.5) * 0.1
-        
-        onLocationSelect({ lat, lng })
-        toast({ title: "Location Selected", description: `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}` })
-      })
+      const clickHandler = (e: MouseEvent) => {
+        try {
+          const rect = mapDiv.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          const y = e.clientY - rect.top
+          
+          // Convert click position to mock coordinates
+          const lat = 12.9716 + (y / rect.height - 0.5) * 0.1
+          const lng = 77.5946 + (x / rect.width - 0.5) * 0.1
+          
+          if (isFinite(lat) && isFinite(lng)) {
+            onLocationSelect({ lat, lng })
+            toast({ title: "Location Selected", description: `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}` })
+          }
+        } catch (error) {
+          toast({ title: "Error", description: "Failed to select location", variant: "destructive" })
+        }
+      }
+      
+      mapDiv.addEventListener('click', clickHandler)
+      
+      // Cleanup function
+      return () => {
+        mapDiv.removeEventListener('click', clickHandler)
+        if (mapContainer && mapContainer.contains(mapDiv)) {
+          mapContainer.removeChild(mapDiv)
+        }
+      }
     }
 
     return () => {
@@ -130,7 +154,7 @@ const MapComponent = ({
         mapContainer.innerHTML = ''
       }
     }
-  }, [mapboxToken, fishermanLocation, buyerLocation, showRoute, onLocationSelect, height])
+  }, [fishermanLocation, buyerLocation, showRoute, onLocationSelect, height, toast])
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -159,7 +183,7 @@ const MapComponent = ({
       {onLocationSelect && (
         <button
           onClick={getCurrentLocation}
-          className="absolute top-2 right-2 bg-white p-2 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          className="absolute top-2 right-2 bg-white p-2 rounded-lg shadow-md hover:shadow-lg transition-shadow border"
           title="Get Current Location"
         >
           <Navigation className="h-4 w-4" />
@@ -167,9 +191,9 @@ const MapComponent = ({
       )}
       
       {showRoute && fishermanLocation && buyerLocation && (
-        <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm p-3 rounded-lg">
+        <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm p-3 rounded-lg border">
           <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">Route Info:</span>
+            <span className="font-medium">Live Tracking:</span>
             <div className="flex gap-4">
               <span>Distance: ~12.5 km</span>
               <span>ETA: ~25 mins</span>

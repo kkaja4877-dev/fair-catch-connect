@@ -10,7 +10,20 @@ const Dashboard = () => {
   const { user, profile } = useAuth()
 
   const renderDashboardByRole = () => {
-    switch (profile?.role) {
+    if (!profile?.role) {
+      return (
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Dashboard Loading</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Loading your dashboard...</p>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    switch (profile.role) {
       case 'fisherman':
         return <FishermanDashboard />
       case 'supplier':
@@ -20,7 +33,17 @@ const Dashboard = () => {
       case 'market':
         return <BusinessDashboard />
       default:
-        return <SupplierDashboard /> // Default fallback
+        return (
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Dashboard Not Available</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>No dashboard available for role: {profile.role}</p>
+              <p>Please contact support for assistance.</p>
+            </CardContent>
+          </Card>
+        )
     }
   }
 

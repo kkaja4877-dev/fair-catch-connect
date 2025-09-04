@@ -417,6 +417,21 @@ const BusinessDashboard = () => {
                           Pay Now
                         </Button>
                       )}
+                      {order.payment_status === 'paid' && order.delivery_status !== 'delivered' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => alert('Delivery tracking not implemented for business dashboard')}
+                        >
+                          <MapPin className="h-4 w-4 mr-1" />
+                          Track Delivery
+                        </Button>
+                      )}
+                      {order.delivery_status === 'delivered' && (
+                        <Badge variant="outline" className="text-green-600">
+                          Delivered
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>

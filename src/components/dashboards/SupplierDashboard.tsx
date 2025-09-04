@@ -398,8 +398,13 @@ const SupplierDashboard = () => {
                           onClick={() => setDeliveryModal({ isOpen: true, order: item })}
                         >
                           <MapPin className="h-4 w-4 mr-1" />
-                          Track
+                          Track Order
                         </Button>
+                      )}
+                      {!('bid_amount' in item) && item.delivery_status === 'delivered' && (
+                        <Badge variant="outline" className="text-green-600">
+                          Delivered
+                        </Badge>
                       )}
                     </div>
                   </div>

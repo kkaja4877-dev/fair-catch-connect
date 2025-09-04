@@ -145,22 +145,29 @@ const DeliveryTrackingModal = ({ isOpen, onClose, order, onDeliveryComplete }: D
               <MapComponent
                 fishermanLocation={
                   order?.fisherman_latitude && order?.fisherman_longitude
-                    ? { lat: order.fisherman_latitude, lng: order.fisherman_longitude }
+                    ? { lat: Number(order.fisherman_latitude), lng: Number(order.fisherman_longitude) }
                     : null
                 }
                 buyerLocation={
                   order?.buyer_latitude && order?.buyer_longitude
-                    ? { lat: order.buyer_latitude, lng: order.buyer_longitude }
+                    ? { lat: Number(order.buyer_latitude), lng: Number(order.buyer_longitude) }
                     : null
                 }
-                showRoute={true}
+                showRoute={Boolean(order?.fisherman_latitude && order?.fisherman_longitude && order?.buyer_latitude && order?.buyer_longitude)}
               />
             </div>
             
-            {profile?.role === 'fisherman' && (
+            {profile?.role === 'fisherman' && order?.buyer_latitude && order?.buyer_longitude && (
               <Button onClick={handleNavigate} className="w-full">
                 <Navigation className="h-4 w-4 mr-2" />
                 Navigate to Buyer
+              </Button>
+            )}
+            
+            {profile?.role === 'fisherman' && (!order?.buyer_latitude || !order?.buyer_longitude) && (
+              <Button disabled className="w-full">
+                <Navigation className="h-4 w-4 mr-2" />
+                Buyer Location Not Available
               </Button>
             )}
           </div>

@@ -423,8 +423,13 @@ const HotelDashboard = () => {
                           onClick={() => setDeliveryModal({ isOpen: true, order })}
                         >
                           <MapPin className="h-4 w-4 mr-1" />
-                          Track
+                          Track Delivery
                         </Button>
+                      )}
+                      {order.delivery_status === 'delivered' && (
+                        <Badge variant="outline" className="text-green-600">
+                          Delivered to Kitchen
+                        </Badge>
                       )}
                     </div>
                   </div>

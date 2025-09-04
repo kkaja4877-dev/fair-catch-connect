@@ -432,16 +432,24 @@ const FishermanDashboard = () => {
                        <MessageCircle className="h-4 w-4 mr-1" />
                        Chat
                      </Button>
-                     {order.payment_status === 'paid' && order.delivery_status !== 'delivered' && (
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => setDeliveryModal({ isOpen: true, order })}
-                       >
-                         <Truck className="h-4 w-4 mr-1" />
-                         Deliver
-                       </Button>
-                     )}
+                      {order.payment_status === 'paid' && order.delivery_status !== 'delivered' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setDeliveryModal({ isOpen: true, order })}
+                        >
+                          <Truck className="h-4 w-4 mr-1" />
+                          Deliver with OTP
+                        </Button>
+                      )}
+                      {order.status === 'confirmed' && order.payment_status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => setPaymentModal({ isOpen: true, order })}
+                        >
+                          Request Payment
+                        </Button>
+                      )}
                    </div>
                 </div>
               ))}
