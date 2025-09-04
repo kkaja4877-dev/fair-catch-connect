@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
+  // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -52,13 +52,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "bids_bidder_id_fkey"
-            columns: ["bidder_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "bids_bidder_id_fkey"
             columns: ["bidder_id"]
@@ -120,33 +113,6 @@ export type Database = {
           id?: string
           listing_id?: string
           message?: string | null
-        }
-        Relationships: []
-      }
-      listing_images: {
-        Row: {
-          created_at: string | null
-          id: string
-          image_url: string
-          latitude: number | null
-          listing_id: string
-          longitude: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          image_url: string
-          latitude?: number | null
-          listing_id: string
-          longitude?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          image_url?: string
-          latitude?: number | null
-          listing_id?: string
-          longitude?: number | null
         }
         Relationships: []
       }
@@ -214,44 +180,10 @@ export type Database = {
             foreignKeyName: "listings_fisherman_id_fkey"
             columns: ["fisherman_id"]
             isOneToOne: false
-            referencedRelation: "marketplace_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "listings_fisherman_id_fkey"
-            columns: ["fisherman_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
-      }
-      messages: {
-        Row: {
-          created_at: string | null
-          id: string
-          listing_id: string
-          message: string
-          receiver_id: string
-          sender_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          listing_id: string
-          message: string
-          receiver_id: string
-          sender_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          listing_id?: string
-          message?: string
-          receiver_id?: string
-          sender_id?: string
-        }
-        Relationships: []
       }
       notifications: {
         Row: {
@@ -290,21 +222,11 @@ export type Database = {
         Row: {
           advance_amount: number | null
           buyer_id: string
-          buyer_latitude: number | null
-          buyer_longitude: number | null
-          chat_summary: string | null
           created_at: string
           delivery_address: string
-          delivery_completed_at: string | null
           delivery_date: string | null
-          delivery_otp: string | null
-          delivery_status: string | null
-          estimated_delivery_time: string | null
-          fisherman_latitude: number | null
-          fisherman_longitude: number | null
           id: string
           listing_id: string
-          negotiated_price: number | null
           payment_method: string | null
           payment_screenshot_url: string | null
           payment_status: string
@@ -314,28 +236,17 @@ export type Database = {
           seller_id: string
           status: string
           total_amount: number
-          tracking_enabled: boolean | null
           updated_at: string
           upi_transaction_id: string | null
         }
         Insert: {
           advance_amount?: number | null
           buyer_id: string
-          buyer_latitude?: number | null
-          buyer_longitude?: number | null
-          chat_summary?: string | null
           created_at?: string
           delivery_address: string
-          delivery_completed_at?: string | null
           delivery_date?: string | null
-          delivery_otp?: string | null
-          delivery_status?: string | null
-          estimated_delivery_time?: string | null
-          fisherman_latitude?: number | null
-          fisherman_longitude?: number | null
           id?: string
           listing_id: string
-          negotiated_price?: number | null
           payment_method?: string | null
           payment_screenshot_url?: string | null
           payment_status?: string
@@ -345,28 +256,17 @@ export type Database = {
           seller_id: string
           status?: string
           total_amount: number
-          tracking_enabled?: boolean | null
           updated_at?: string
           upi_transaction_id?: string | null
         }
         Update: {
           advance_amount?: number | null
           buyer_id?: string
-          buyer_latitude?: number | null
-          buyer_longitude?: number | null
-          chat_summary?: string | null
           created_at?: string
           delivery_address?: string
-          delivery_completed_at?: string | null
           delivery_date?: string | null
-          delivery_otp?: string | null
-          delivery_status?: string | null
-          estimated_delivery_time?: string | null
-          fisherman_latitude?: number | null
-          fisherman_longitude?: number | null
           id?: string
           listing_id?: string
-          negotiated_price?: number | null
           payment_method?: string | null
           payment_screenshot_url?: string | null
           payment_status?: string
@@ -376,18 +276,10 @@ export type Database = {
           seller_id?: string
           status?: string
           total_amount?: number
-          tracking_enabled?: boolean | null
           updated_at?: string
           upi_transaction_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "orders_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "orders_buyer_id_fkey"
             columns: ["buyer_id"]
@@ -400,13 +292,6 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -470,15 +355,12 @@ export type Database = {
           full_name: string
           id: string
           is_verified: boolean | null
-          latitude: number | null
-          longitude: number | null
           phone: string | null
           rating: number | null
           role: Database["public"]["Enums"]["user_role"]
           state: string | null
           total_reviews: number | null
           updated_at: string
-          upi_id: string | null
           user_id: string
         }
         Insert: {
@@ -488,15 +370,12 @@ export type Database = {
           full_name: string
           id?: string
           is_verified?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
           phone?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           total_reviews?: number | null
           updated_at?: string
-          upi_id?: string | null
           user_id: string
         }
         Update: {
@@ -506,15 +385,12 @@ export type Database = {
           full_name?: string
           id?: string
           is_verified?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
           phone?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           total_reviews?: number | null
           updated_at?: string
-          upi_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -559,21 +435,7 @@ export type Database = {
             foreignKeyName: "reviews_reviewed_id_fkey"
             columns: ["reviewed_id"]
             isOneToOne: false
-            referencedRelation: "marketplace_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_reviewed_id_fkey"
-            columns: ["reviewed_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "marketplace_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -587,58 +449,18 @@ export type Database = {
       }
     }
     Views: {
-      marketplace_profiles: {
-        Row: {
-          city: string | null
-          full_name: string | null
-          id: string | null
-          is_verified: boolean | null
-          rating: number | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          state: string | null
-          total_reviews: number | null
-        }
-        Insert: {
-          city?: string | null
-          full_name?: string | null
-          id?: string | null
-          is_verified?: never
-          rating?: never
-          role?: Database["public"]["Enums"]["user_role"] | null
-          state?: string | null
-          total_reviews?: never
-        }
-        Update: {
-          city?: string | null
-          full_name?: string | null
-          id?: string | null
-          is_verified?: never
-          rating?: never
-          role?: Database["public"]["Enums"]["user_role"] | null
-          state?: string | null
-          total_reviews?: never
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       create_notification: {
         Args: {
-          notification_message: string
+          target_user_id: string
           notification_title: string
+          notification_message: string
           notification_type?: string
           related_record_id?: string
-          target_user_id: string
         }
         Returns: string
-      }
-      generate_delivery_otp: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_safe_marketplace_profile: {
-        Args: { profile_id: string }
-        Returns: Json
       }
     }
     Enums: {

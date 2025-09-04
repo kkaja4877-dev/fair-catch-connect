@@ -6,25 +6,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Fish, ShoppingCart, TrendingUp, DollarSign, Plus, Eye, Star, MessageCircle, Heart, Search, Building2, Settings, MapPin } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Building2, TrendingUp, Package, BarChart3, Eye, Search, Download } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
-import NotificationBell from "../NotificationBell"
-import PaymentModal from "../PaymentModal"
-import ChatModal from "../ChatModal"
 
 const BusinessDashboard = () => {
   const { user, profile } = useAuth()
   const { toast } = useToast()
   const [listings, setListings] = useState([])
-  const [myBids, setMyBids] = useState([])
   const [myOrders, setMyOrders] = useState([])
   const [priceHistory, setPriceHistory] = useState([])
   const [selectedListing, setSelectedListing] = useState(null)
-  const [bidAmount, setBidAmount] = useState("")
   const [bulkOrderQuantity, setBulkOrderQuantity] = useState("")
-  const [paymentModal, setPaymentModal] = useState({ isOpen: false, order: null })
-  const [chatModal, setChatModal] = useState({ isOpen: false, listing: null, otherParty: null })
   const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
@@ -35,47 +28,25 @@ const BusinessDashboard = () => {
 
   const fetchData = async () => {
     await Promise.all([
-      fetchAvailableListings(),
-      fetchMyBids(),
+      fetchBulkListings(),
       fetchMyOrders(),
       fetchPriceHistory()
     ])
   }
 
-  const fetchAvailableListings = async () => {
+  const fetchBulkListings = async () => {
     const { data } = await supabase
       .from('listings')
       .select(`
         *,
-        fish_types (name),
-        profiles (full_name)
+        fish_types (name, category),
+        profiles (full_name, rating, is_verified)
       `)
       .eq('status', 'available')
-      .order('created_at', { ascending: false })
+      .gte('weight_kg', 50) // Show only bulk quantities
+      .order('weight_kg', { ascending: false })
     
     if (data) setListings(data)
-  }
-
-  const fetchMyBids = async () => {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!profileData) return
-
-    const { data } = await supabase
-      .from('bids')
-      .select(`
-        *,
-        listings (title, fish_types (name)),
-        profiles!bids_bidder_id_fkey (full_name)
-      `)
-      .eq('bidder_id', profileData.id)
-      .order('created_at', { ascending: false })
-    
-    if (data) setMyBids(data)
   }
 
   const fetchMyOrders = async () => {
@@ -113,51 +84,6 @@ const BusinessDashboard = () => {
     if (data) setPriceHistory(data)
   }
 
-  const handlePlaceBid = async () => {
-    try {
-      if (!bidAmount) {
-        toast({ title: "Error", description: "Please enter bid amount", variant: "destructive" })
-        return
-      }
-
-      if (parseFloat(bidAmount) <= 0) {
-        toast({ title: "Error", description: "Bid amount must be greater than 0", variant: "destructive" })
-        return
-      }
-
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!profileData) {
-        toast({ title: "Error", description: "Profile not found", variant: "destructive" })
-        return
-      }
-
-      const quantity = selectedListing.weight_kg
-      const totalBidAmount = parseFloat(bidAmount) * quantity
-      
-      const { error } = await supabase.from('bids').insert([{
-        listing_id: selectedListing.id,
-        bidder_id: profileData.id,
-        bid_amount: parseFloat(bidAmount),
-        quantity_kg: quantity,
-        total_bid: totalBidAmount
-      }])
-
-      if (error) throw error
-
-      toast({ title: "Success", description: "Bulk bid placed successfully!" })
-      setSelectedListing(null)
-      setBidAmount("")
-      fetchMyBids()
-    } catch (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" })
-    }
-  }
-
   const handleBulkOrder = async (listing) => {
     try {
       if (!bulkOrderQuantity) {
@@ -188,56 +114,30 @@ const BusinessDashboard = () => {
         return
       }
 
-      const totalAmount = quantity * listing.price_per_kg
-
-      const { data: order, error } = await supabase.from('orders').insert([{
+      const { error } = await supabase.from('orders').insert([{
         listing_id: listing.id,
         buyer_id: profileData.id,
         seller_id: listing.fisherman_id,
         quantity_kg: quantity,
         price_per_kg: listing.price_per_kg,
-        total_amount: totalAmount,
-        delivery_address: "Business warehouse"
-      }]).select().single()
+        total_amount: quantity * listing.price_per_kg,
+        delivery_address: "Wholesale Distribution Center"
+      }])
 
       if (error) throw error
 
       toast({ title: "Success", description: "Bulk order placed successfully!" })
+      setSelectedListing(null)
       setBulkOrderQuantity("")
       fetchMyOrders()
-      
-      // Open payment modal
-      setPaymentModal({ isOpen: true, order })
     } catch (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     }
   }
 
-  const handleMarkInterested = async (listing) => {
-    try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (!profileData) {
-        toast({ title: "Error", description: "Profile not found", variant: "destructive" })
-        return
-      }
-
-      const { error } = await supabase.from('interests').insert([{
-        listing_id: listing.id,
-        buyer_id: profileData.id,
-        message: `Business interested in bulk purchase of ${listing.title}`
-      }])
-
-      if (error) throw error
-
-      toast({ title: "Success", description: "Interest marked for bulk purchase!" })
-    } catch (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" })
-    }
+  const handlePayOrder = (order) => {
+    // Payment functionality would go here
+    console.log('Pay order:', order)
   }
 
   const filteredListings = listings.filter(listing =>
@@ -246,26 +146,30 @@ const BusinessDashboard = () => {
   )
 
   const totalSpent = myOrders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0)
-  const activeBids = myBids.filter(bid => bid.status === 'pending').length
+  const totalVolume = myOrders.reduce((sum, order) => sum + parseFloat(order.quantity_kg || 0), 0)
+  const avgPrice = totalVolume > 0 ? totalSpent / totalVolume : 0
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Business Dashboard</h1>
-          <p className="text-muted-foreground">Bulk seafood procurement for your business</p>
+          <p className="text-muted-foreground">Wholesale seafood procurement & analytics</p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-1" />
+            Export Report
+          </Button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search for bulk orders..."
+              placeholder="Search bulk listings..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
             />
           </div>
-          <NotificationBell />
         </div>
       </div>
 
@@ -275,10 +179,10 @@ const BusinessDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active Bids</p>
-                <p className="text-2xl font-bold">{activeBids}</p>
+                <p className="text-sm text-muted-foreground">Total Volume</p>
+                <p className="text-2xl font-bold">{totalVolume.toLocaleString()}kg</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-primary" />
+              <Package className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -287,10 +191,10 @@ const BusinessDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Bulk Orders</p>
+                <p className="text-sm text-muted-foreground">Total Orders</p>
                 <p className="text-2xl font-bold">{myOrders.length}</p>
               </div>
-              <ShoppingCart className="h-8 w-8 text-primary" />
+              <Building2 className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -299,10 +203,10 @@ const BusinessDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Available Stock</p>
-                <p className="text-2xl font-bold">{listings.length}</p>
+                <p className="text-sm text-muted-foreground">Avg Price/kg</p>
+                <p className="text-2xl font-bold">₹{avgPrice.toFixed(0)}</p>
               </div>
-              <Fish className="h-8 w-8 text-primary" />
+              <BarChart3 className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -311,24 +215,21 @@ const BusinessDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Procurement</p>
+                <p className="text-sm text-muted-foreground">Total Spend</p>
                 <p className="text-2xl font-bold">₹{totalSpent.toLocaleString()}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-primary" />
+              <TrendingUp className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Bulk Purchase Opportunities */}
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Bulk Listings */}
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Bulk Purchase Options
-            </CardTitle>
+            <CardTitle>Bulk Seafood Listings (50kg+)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -336,50 +237,68 @@ const BusinessDashboard = () => {
                 <div key={listing.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-semibold">{listing.title}</h4>
-                    <Badge variant="default">Bulk Available</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {listing.fish_types?.name} • {listing.weight_kg}kg total • by {listing.profiles?.full_name}
-                  </p>
-                  <p className="text-lg font-bold text-primary">₹{listing.price_per_kg}/kg</p>
-                  <div className="flex gap-2 mt-3">
-                    <div className="flex-1">
-                      <Input 
-                        placeholder="Quantity (kg)"
-                        value={bulkOrderQuantity}
-                        onChange={(e) => setBulkOrderQuantity(e.target.value)}
-                        type="number"
-                        className="mb-2"
-                      />
+                    <div className="flex gap-2">
+                      <Badge variant="default">{listing.fish_types?.category}</Badge>
+                      {listing.profiles?.is_verified && (
+                        <Badge variant="secondary">Verified</Badge>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedListing(listing)}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Bid Bulk
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleMarkInterested(listing)}
-                    >
-                      <Heart className="h-4 w-4 mr-1" />
-                      Interested
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setChatModal({ 
-                        isOpen: true, 
-                        listing, 
-                        otherParty: listing.profiles 
-                      })}
-                    >
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      Negotiate
-                    </Button>
-                    <Button size="sm" onClick={() => handleBulkOrder(listing)}>
-                      Order Bulk
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {listing.fish_types?.name} • {listing.weight_kg}kg available
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Supplier: {listing.profiles?.full_name} ⭐ {listing.profiles?.rating}/5
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg font-bold text-primary">₹{listing.price_per_kg}/kg</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total: ₹{(listing.weight_kg * listing.price_per_kg).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline" onClick={() => setSelectedListing(listing)}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          Bulk Order
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Bulk Order - {listing.title}</DialogTitle>
+                          <DialogDescription>
+                            Place a wholesale order
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="bulkQuantity">Quantity (kg)</Label>
+                            <Input
+                              id="bulkQuantity"
+                              placeholder={`Max: ${listing.weight_kg}kg`}
+                              value={bulkOrderQuantity}
+                              onChange={(e) => setBulkOrderQuantity(e.target.value)}
+                            />
+                          </div>
+                          <div className="p-4 bg-muted rounded-lg">
+                            <p className="text-sm">Bulk Order Summary:</p>
+                            <p className="font-semibold">
+                              {bulkOrderQuantity}kg × ₹{listing.price_per_kg} = 
+                              ₹{(parseFloat(bulkOrderQuantity) * listing.price_per_kg).toLocaleString() || 0}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Delivery to wholesale distribution center
+                            </p>
+                          </div>
+                          <Button onClick={() => handleBulkOrder(listing)} className="w-full">
+                            Confirm Bulk Order
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <Button size="sm" variant="ocean">
+                      Request Quote
                     </Button>
                   </div>
                 </div>
@@ -388,127 +307,59 @@ const BusinessDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Business Orders & Analytics */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Business Procurement</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {myOrders.slice(0, 5).map((order) => (
-                <div key={order.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold">{order.listings?.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {order.listings?.fish_types?.name} • {order.quantity_kg}kg
-                      </p>
-                      <p className="text-lg font-bold text-primary">₹{order.total_amount}</p>
+        {/* Price Analytics & Recent Orders */}
+        <div className="space-y-6">
+          {/* Price History */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Price Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {priceHistory.map((price) => (
+                  <div key={price.id} className="border rounded-lg p-3">
+                    <p className="font-semibold text-sm">{price.fish_types?.name}</p>
+                    <div className="flex justify-between text-xs">
+                      <span>Avg: ₹{price.avg_price}/kg</span>
+                      <span>{new Date(price.date).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Range: ₹{price.min_price}-{price.max_price}</span>
+                      <span>Vol: {price.total_volume_kg}kg</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Orders */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Bulk Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {myOrders.slice(0, 5).map((order) => (
+                  <div key={order.id} className="border rounded-lg p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-sm">{order.listings?.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.quantity_kg}kg • ₹{order.total_amount}
+                        </p>
+                      </div>
                       <Badge variant={order.status === 'pending' ? 'default' : 'secondary'}>
                         {order.status}
                       </Badge>
-                      {order.payment_status === 'pending' && (
-                        <Button 
-                          size="sm" 
-                          onClick={() => setPaymentModal({ isOpen: true, order })}
-                        >
-                          Pay Now
-                        </Button>
-                      )}
-                      {order.payment_status === 'paid' && order.delivery_status !== 'delivered' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => alert('Delivery tracking not implemented for business dashboard')}
-                        >
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Track Delivery
-                        </Button>
-                      )}
-                      {order.delivery_status === 'delivered' && (
-                        <Badge variant="outline" className="text-green-600">
-                          Delivered
-                        </Badge>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {priceHistory.length > 0 && (
-                <div className="border-t pt-4 mt-4">
-                  <h4 className="font-semibold mb-2">Price Trends</h4>
-                  {priceHistory.slice(0, 3).map((price) => (
-                    <div key={price.id} className="text-sm mb-1">
-                      <span className="font-medium">{price.fish_types?.name}</span>
-                      <span className="text-muted-foreground ml-2">
-                        ₹{price.avg_price}/kg avg
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      {/* Bulk Bid Modal */}
-      {selectedListing && (
-        <Dialog open={!!selectedListing} onOpenChange={() => setSelectedListing(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Bulk Bid - {selectedListing.title}</DialogTitle>
-              <DialogDescription>
-                Place a bulk bid for the entire stock ({selectedListing.weight_kg}kg)
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="bidAmount">Bid Amount (per kg)</Label>
-                <Input
-                  id="bidAmount"
-                  placeholder="₹650"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Total: ₹{(parseFloat(bidAmount) * selectedListing.weight_kg || 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handlePlaceBid} className="flex-1">
-                  Place Bulk Bid
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedListing(null)} className="flex-1">
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={paymentModal.isOpen}
-        onClose={() => setPaymentModal({ isOpen: false, order: null })}
-        order={paymentModal.order}
-        onPaymentComplete={() => {
-          fetchMyOrders()
-          setPaymentModal({ isOpen: false, order: null })
-        }}
-      />
-
-      {/* Chat Modal */}
-      <ChatModal
-        isOpen={chatModal.isOpen}
-        onClose={() => setChatModal({ isOpen: false, listing: null, otherParty: null })}
-        listing={chatModal.listing}
-        otherParty={chatModal.otherParty}
-      />
     </div>
   )
 }

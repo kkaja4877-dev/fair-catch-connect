@@ -34,7 +34,7 @@ const Auth = () => {
 
   // Redirect if already authenticated
   if (user) {
-    navigate('/dashboard');
+    navigate('/');
     return null;
   }
 
@@ -52,7 +52,7 @@ const Auth = () => {
     });
     
     if (!error) {
-      navigate('/dashboard');
+      navigate('/');
     }
     setIsLoading(false);
   };
@@ -62,7 +62,7 @@ const Auth = () => {
     const { error } = await signIn(data.email, data.password);
     
     if (!error) {
-      navigate('/dashboard');
+      navigate('/');
     }
     setIsLoading(false);
   };
